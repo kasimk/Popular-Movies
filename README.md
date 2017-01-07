@@ -2,7 +2,7 @@
 App created to help users discover popular and recent movies
 
 #Features
-Load most popular and most rated movies
+Load most popular and most rated movies,
 Movie details
 
 #Instructions for running the app
