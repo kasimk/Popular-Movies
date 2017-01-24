@@ -1,4 +1,4 @@
-package info.kasimkovacevic.popularmovies.data;
+package info.kasimkovacevic.popularmovies.utils;
 
 import android.database.Cursor;
 
