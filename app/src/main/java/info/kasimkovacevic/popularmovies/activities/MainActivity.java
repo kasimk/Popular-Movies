@@ -12,52 +12,95 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.adapters.MoviesAdapter;
-import info.kasimkovacevic.popularmovies.asynctasks.FetchDataAsyncTask;
-import info.kasimkovacevic.popularmovies.listeners.FetchDataListener;
-import info.kasimkovacevic.popularmovies.models.Error;
+import info.kasimkovacevic.popularmovies.data.RestClientRouter;
+import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
+import info.kasimkovacevic.popularmovies.models.MoviesResponseModel;
 import info.kasimkovacevic.popularmovies.utils.MOVIES_ENUM;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
+import rx.Observable;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
-public class MainActivity extends AppCompatActivity implements FetchDataListener {
+public class MainActivity extends AppCompatActivity {
 
-    private TextView errorTextView;
-    private ProgressBar loaderProgressBar;
-    private RecyclerView moviesRecyclerView;
+    @BindView(R.id.tv_error)
+    TextView errorTextView;
+    @BindView(R.id.pb_loader)
+    ProgressBar loaderProgressBar;
+    @BindView(R.id.rv_movies)
+    RecyclerView moviesRecyclerView;
+
     private MoviesAdapter moviesAdapter;
     private MOVIES_ENUM moviesEnum;
+    private TheMovieDBService theMovieDBService;
+    private Observable<MoviesResponseModel> response;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        errorTextView = (TextView) findViewById(R.id.tv_error);
-        loaderProgressBar = (ProgressBar) findViewById(R.id.pb_loader);
-        moviesRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
+        ButterKnife.bind(this);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
         moviesRecyclerView.setLayoutManager(gridLayoutManager);
         moviesAdapter = new MoviesAdapter(this);
         moviesRecyclerView.setAdapter(moviesAdapter);
         moviesEnum = MOVIES_ENUM.POPULAR;
-        new FetchDataAsyncTask(this).execute(NetworkUtils.buildUrl(moviesEnum));
+        theMovieDBService = RestClientRouter.get();
+        callApiForNewData();
     }
 
-    @Override
+
+    private void callApiForNewData() {
+        onRequestStart();
+        response = theMovieDBService.listPopularMovies(moviesEnum.toString(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+        response.subscribeOn(Schedulers.io()).
+                observeOn(AndroidSchedulers.mainThread()
+                ).
+                subscribe(new Observer<MoviesResponseModel>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        onFailure(e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(MoviesResponseModel model) {
+                        onSuccess(model.getMovies());
+                    }
+                });
+    }
+
     public void onRequestStart() {
         loaderProgressBar.setVisibility(View.VISIBLE);
     }
 
-    @Override
     public void onSuccess(List<Movie> movieList) {
         showMovies(movieList);
     }
 
-    @Override
-    public void onFailure(Error error) {
+    public void onFailure(String error) {
         showError(error);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (response != null) {
+            response.unsubscribeOn(Schedulers.io());
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -67,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements FetchDataListener
         } else {
             moviesEnum = MOVIES_ENUM.POPULAR;
         }
-        new FetchDataAsyncTask(this).execute(NetworkUtils.buildUrl(moviesEnum));
+        callApiForNewData();
         return true;
     }
 
@@ -85,10 +128,10 @@ public class MainActivity extends AppCompatActivity implements FetchDataListener
         moviesAdapter.setMovies(movies);
     }
 
-    private void showError(Error error) {
+    private void showError(String error) {
         moviesRecyclerView.setVisibility(View.INVISIBLE);
         loaderProgressBar.setVisibility(View.INVISIBLE);
-        errorTextView.setText(error.getErrorMessage());
+        errorTextView.setText(error);
         errorTextView.setVisibility(View.VISIBLE);
     }
 }

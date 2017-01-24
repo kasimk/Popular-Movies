@@ -37,7 +37,7 @@ public class NetworkUtils {
     /**
      * THE_MOVIE_DB_BASE_URL is used like base url for getting data from api.themoviedb.org
      */
-    private final static String THE_MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie";
+    public final static String THE_MOVIE_DB_BASE_URL = "http://api.themoviedb.org/";
     /**
      * THE_MOVIE_DB_PHOTOS_URL is used like base url for getting photos from image.tmdb.org
      */
@@ -45,7 +45,7 @@ public class NetworkUtils {
     /**
      * THE_MOVIE_DB_API_KEY contains API key for api.themoviedb.org
      */
-    private final static String THE_MOVIE_DB_API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
+    public final static String THE_MOVIE_DB_API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
 
 
     /**
@@ -59,7 +59,7 @@ public class NetworkUtils {
     /**
      * PARAM_API_KEY is url request param
      */
-    private final static String PARAM_API_KEY = "api_key";
+    public final static String PARAM_API_KEY = "api_key";
 
     private final static String UTF_8_ENCODING = "UTF-8";
 
@@ -84,51 +84,6 @@ public class NetworkUtils {
         return Uri.parse(THE_MOVIE_DB_PHOTOS_URL).buildUpon().appendPath(PHOTO_SIZE_W342).appendPath(decodedPath).build();
     }
 
-    /**
-     * These method return {@link URL} for fetch data from themoviedb.org
-     *
-     * @param moviesEnum is used for sorting movies, sorting can be by popularity and top rated value
-     * @return object of {@link URL} for fetching data from themoviedb.org
-     */
-    public static URL buildUrl(MOVIES_ENUM moviesEnum) {
-        Uri builtUri = Uri.parse(THE_MOVIE_DB_BASE_URL).buildUpon()
-                .appendPath(moviesEnum.toString())
-                .appendQueryParameter(PARAM_API_KEY, THE_MOVIE_DB_API_KEY)
-                .build();
 
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
 
-        return url;
-    }
-
-    /**
-     * This method returns the entire result from the HTTP response.
-     *
-     * @param url The URL to fetch the HTTP response from.
-     * @return The contents of the HTTP response.
-     * @throws IOException Related to network and stream reading
-     */
-    public static String getResponseFromHttpUrl(URL url) throws IOException {
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        try {
-            InputStream in = urlConnection.getInputStream();
-
-            Scanner scanner = new Scanner(in);
-            scanner.useDelimiter("\\A");
-
-            boolean hasInput = scanner.hasNext();
-            if (hasInput) {
-                return scanner.next();
-            } else {
-                return null;
-            }
-        } finally {
-            urlConnection.disconnect();
-        }
-    }
 }

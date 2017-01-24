@@ -41,7 +41,19 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     compile 'com.android.support:recyclerview-v7:25.1.0'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.5'
+    compile 'com.jakewharton:butterknife:8.5.0'
 
+    compile 'io.reactivex:rxandroid:1.0.1'
+    compile 'io.reactivex:rxjava:1.0.16'
+
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-jackson:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+
+    compile 'com.squareup.okhttp3:logging-interceptor:3.3.1'
+
+
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.5'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.0'
 }
