@@ -1,9 +1,14 @@
 package info.kasimkovacevic.popularmovies.activities;
 
+import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,6 +21,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.adapters.MoviesAdapter;
+import info.kasimkovacevic.popularmovies.data.MoviesUtil;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
@@ -27,7 +33,11 @@ import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<List<Movie>> {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int MOVIES_LOADER_ID = 10;
 
     @BindView(R.id.tv_error)
     TextView errorTextView;
@@ -105,12 +115,19 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_sort_by_rating) {
-            moviesEnum = MOVIES_ENUM.TOP_RATED;
-        } else {
-            moviesEnum = MOVIES_ENUM.POPULAR;
+        switch (item.getItemId()) {
+            case R.id.action_sort_by_popularity:
+                moviesEnum = MOVIES_ENUM.POPULAR;
+                getSupportLoaderManager().destroyLoader(MOVIES_LOADER_ID);
+                callApiForNewData();
+            case R.id.action_sort_by_rating:
+                getSupportLoaderManager().destroyLoader(MOVIES_LOADER_ID);
+                moviesEnum = MOVIES_ENUM.TOP_RATED;
+                callApiForNewData();
+            case R.id.action_show_favorites:
+                getSupportLoaderManager().restartLoader(MOVIES_LOADER_ID, null, this);
         }
-        callApiForNewData();
+
         return true;
     }
 
@@ -133,5 +150,57 @@ public class MainActivity extends AppCompatActivity {
         loaderProgressBar.setVisibility(View.INVISIBLE);
         errorTextView.setText(error);
         errorTextView.setVisibility(View.VISIBLE);
+    }
+
+
+    @Override
+    public Loader<List<Movie>> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<List<Movie>>(this) {
+
+            List<Movie> mMovies = null;
+
+            @Override
+            protected void onStartLoading() {
+                if (mMovies != null) {
+                    deliverResult(mMovies);
+                } else {
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public List<Movie> loadInBackground() {
+
+                try {
+                    Cursor cursor = getContentResolver().query(Movie.MovieEntry.CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            Movie.MovieEntry.COLUMN_VOTE_AVERAGE);
+
+                    return MoviesUtil.parseListOfMoviesFromCursor(cursor);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to asynchronously load data.");
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            public void deliverResult(List<Movie> data) {
+                mMovies = data;
+                super.deliverResult(mMovies);
+            }
+        };
+
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
+        moviesAdapter.setMovies(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Movie>> loader) {
+        moviesAdapter.setMovies(null);
     }
 }

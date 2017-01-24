@@ -1,10 +1,15 @@
 package info.kasimkovacevic.popularmovies.activities;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -28,6 +33,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
     TextView movieReleaseDateTextView;
     @BindView(R.id.iv_movie_poster)
     ImageView moviePosterImageView;
+    @BindView(R.id.ib_add_movie_to_favorites)
+    ImageButton addMoviesToFavoritesImageButton;
 
 
     @Override
@@ -49,5 +56,15 @@ public class MovieDetailsActivity extends AppCompatActivity {
         movieRatingTextView.setText(String.valueOf(movie.getVoteAverage()));
         movieReleaseDateTextView.setText(movie.getReleaseDate());
         Picasso.with(MovieDetailsActivity.this).load(NetworkUtils.buildPhotoUrl(movie.getPosterPath())).into(moviePosterImageView);
+
+        addMoviesToFavoritesImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uri = getContentResolver().insert(Movie.MovieEntry.CONTENT_URI, movie.getContentValues());
+                if (uri != null) {
+                    Toast.makeText(MovieDetailsActivity.this, uri.toString(), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }

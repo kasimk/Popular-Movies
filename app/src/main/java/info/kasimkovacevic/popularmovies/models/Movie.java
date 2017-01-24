@@ -1,7 +1,11 @@
 package info.kasimkovacevic.popularmovies.models;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.provider.BaseColumns;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -39,6 +43,22 @@ public class Movie implements Parcelable {
     float voteAverage;
 
     public Movie() {
+    }
+
+    public Movie(Cursor cursor) {
+        posterPath = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH));
+        forAdult = cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FOR_ADULT)) == 1 ? true : false;
+        overview = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_OVERVIEW));
+        releaseDate = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_RELEASE_DATE));
+        id = cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_ID));
+        originalTitle = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_TITLE));
+        originalLanguage = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_ORIGINAL_LANGUAGE));
+        title = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_TITLE));
+        backdropPath = cursor.getString(cursor.getColumnIndex(MovieEntry.COLUMN_BACKDROP_PATH));
+        popularity = cursor.getDouble(cursor.getColumnIndex(MovieEntry.COLUMN_POPULARITY));
+        hasVideo = cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_VIDEO)) == 1 ? true : false;
+        voteAverage = cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_VOTE_AVERAGE));
+        voteCount = cursor.getLong(cursor.getColumnIndex(MovieEntry.COLUMN_VOTE_COUNT));
     }
 
     protected Movie(Parcel in) {
@@ -92,6 +112,24 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    public ContentValues getContentValues() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieEntry.COLUMN_ID, getId());
+        contentValues.put(MovieEntry.COLUMN_POSTER_PATH, getPosterPath());
+        contentValues.put(MovieEntry.COLUMN_FOR_ADULT, isForAdult());
+        contentValues.put(MovieEntry.COLUMN_OVERVIEW, getOverview());
+        contentValues.put(MovieEntry.COLUMN_RELEASE_DATE, getReleaseDate());
+        contentValues.put(MovieEntry.COLUMN_ORIGINAL_TITLE, getOriginalTitle());
+        contentValues.put(MovieEntry.COLUMN_ORIGINAL_LANGUAGE, getOriginalLanguage());
+        contentValues.put(MovieEntry.COLUMN_TITLE, getTitle());
+        contentValues.put(MovieEntry.COLUMN_BACKDROP_PATH, getBackdropPath());
+        contentValues.put(MovieEntry.COLUMN_POPULARITY, getPopularity());
+        contentValues.put(MovieEntry.COLUMN_VOTE_COUNT, getVoteCount());
+        contentValues.put(MovieEntry.COLUMN_VIDEO, isHasVideo());
+        contentValues.put(MovieEntry.COLUMN_VOTE_AVERAGE, getVoteAverage());
+        return contentValues;
+    }
 
     public String getPosterPath() {
         return posterPath;
@@ -204,4 +242,37 @@ public class Movie implements Parcelable {
     public void setVoteAverage(float voteAverage) {
         this.voteAverage = voteAverage;
     }
+
+
+    //Local storage definition
+
+    public static final String AUTHORITY = "info.kasimkovacevic.popularmovies";
+
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+
+    public static final String PATH_MOVIES = "movies";
+
+    public static final class MovieEntry implements BaseColumns {
+
+        // MovieEntry content URI = base content URI + path
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIES).build();
+
+        public static final String TABLE_NAME = "movies";
+        public static final String COLUMN_POSTER_PATH = "poster_path";
+        public static final String COLUMN_FOR_ADULT = "for_adult";
+        public static final String COLUMN_OVERVIEW = "overview";
+        public static final String COLUMN_RELEASE_DATE = "release_date";
+        public static final String COLUMN_ID = "id";
+        public static final String COLUMN_ORIGINAL_TITLE = "original_title";
+        public static final String COLUMN_ORIGINAL_LANGUAGE = "original_language";
+        public static final String COLUMN_TITLE = "title";
+        public static final String COLUMN_BACKDROP_PATH = "backdrop_path";
+        public static final String COLUMN_POPULARITY = "popularity";
+        public static final String COLUMN_VOTE_COUNT = "vote_count";
+        public static final String COLUMN_VIDEO = "video";
+        public static final String COLUMN_VOTE_AVERAGE = "vote_average";
+    }
+    //
+
 }
