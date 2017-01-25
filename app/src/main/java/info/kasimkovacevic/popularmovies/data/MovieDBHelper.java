@@ -12,7 +12,7 @@ import info.kasimkovacevic.popularmovies.models.Movie.MovieEntry;
 public class MovieDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "moviesDB.db";
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
     MovieDBHelper(Context context) {
         super(context, DATABASE_NAME, null, VERSION);
@@ -34,6 +34,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_VIDEO + " BOOLEAN, " +
                 MovieEntry.COLUMN_VOTE_AVERAGE + " DOUBLE, " +
                 MovieEntry.COLUMN_VOTE_COUNT + " LONG, " +
+                MovieEntry.COLUMN_FAVOURITE + " BOOLEAN, " +
                 MovieEntry.COLUMN_FOR_ADULT + " BOOLEAN);";
 
         db.execSQL(CREATE_TABLE);

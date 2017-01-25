@@ -7,6 +7,7 @@ package info.kasimkovacevic.popularmovies.utils;
 public enum MOVIES_ENUM {
 
     POPULAR("popular"),
+    FAVOURITES("favourites"),
     TOP_RATED("top_rated");
 
     private final String text;

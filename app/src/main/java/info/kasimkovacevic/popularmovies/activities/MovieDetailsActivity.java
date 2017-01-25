@@ -1,16 +1,21 @@
 package info.kasimkovacevic.popularmovies.activities;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -19,6 +24,7 @@ import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.adapters.ReviewsAdapter;
 import info.kasimkovacevic.popularmovies.adapters.TrailersAdapter;
+import info.kasimkovacevic.popularmovies.data.DBHelper;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
@@ -30,9 +36,12 @@ import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class MovieDetailsActivity extends AppCompatActivity {
+public class MovieDetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie> {
 
     public static final String POPULAR_MOVIES_MOVIE_EXTRA = "info.kasimkovacevic.popularmovies.MOVIE_EXTRA";
+    private static final String TAG = MovieDetailsActivity.class.getSimpleName();
+    private static final int MOVIE_TASK_ID = 101;
+
     private Movie movie;
     @BindView(R.id.tv_movie_title)
     TextView movieTitleTextView;
@@ -54,11 +63,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private TrailersAdapter trailersAdapter;
     private ReviewsAdapter reviewsAdapter;
-
     private TheMovieDBService theMovieDBService;
     private Observable<TrailersResponseModel> trailersResponse;
     private Observable<ReviewsResponseModel> reviewsResponse;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,10 +91,13 @@ public class MovieDetailsActivity extends AppCompatActivity {
         addMoviesToFavoritesImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri uri = getContentResolver().insert(Movie.MovieEntry.CONTENT_URI, movie.getContentValues());
-                if (uri != null) {
-                    Toast.makeText(MovieDetailsActivity.this, uri.toString(), Toast.LENGTH_LONG).show();
+                movie.setFavourite(!movie.isFavourite());
+                if (movie.isFavourite()) {
+                    addMoviesToFavoritesImageButton.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@android:drawable/btn_star_big_on", null, null)));
+                } else {
+                    addMoviesToFavoritesImageButton.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@android:drawable/btn_star_big_off", null, null)));
                 }
+                DBHelper.insertOrUpdateMovie(MovieDetailsActivity.this, movie);
             }
         });
         trailersAdapter = new TrailersAdapter(MovieDetailsActivity.this, null);
@@ -103,7 +113,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
         theMovieDBService = RestClientRouter.get();
         loadTrailers();
         loadReviews();
+        getSupportLoaderManager().initLoader(MOVIE_TASK_ID, null, this);
     }
+
 
     private void loadReviews() {
         reviewsResponse = theMovieDBService.loadReviewsForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
@@ -152,5 +164,64 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public Loader<Movie> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Movie>(this) {
+
+            Movie mMovie = null;
+
+            @Override
+            protected void onStartLoading() {
+                if (mMovie != null) {
+                    deliverResult(mMovie);
+                } else {
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public Movie loadInBackground() {
+                String[] args = {String.valueOf(movie.getId())};
+                try {
+                    Uri uri = Movie.MovieEntry.CONTENT_URI;
+                    Cursor cursor = getContentResolver().query(uri,
+                            null,
+                            Movie.MovieEntry.COLUMN_ID + "=?", args,
+                            Movie.MovieEntry.COLUMN_VOTE_AVERAGE);
+                    if (cursor.moveToNext()) {
+                        return new Movie(cursor);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to asynchronously load data.");
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            public void deliverResult(Movie data) {
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Movie> loader, Movie data) {
+        int res;
+        if (data != null && data.isFavourite()) {
+            res = getResources().getIdentifier("@android:drawable/btn_star_big_on", null, null);
+            movie.setFavourite(true);
+        } else {
+            res = getResources().getIdentifier("@android:drawable/btn_star_big_off", null, null);
+            movie.setFavourite(false);
+        }
+        addMoviesToFavoritesImageButton.setEnabled(true);
+        addMoviesToFavoritesImageButton.setImageDrawable(getResources().getDrawable(res));
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Movie> loader) {
+
+    }
 }
 

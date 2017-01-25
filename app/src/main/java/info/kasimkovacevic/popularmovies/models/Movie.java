@@ -42,6 +42,8 @@ public class Movie implements Parcelable {
     @JsonProperty("vote_average")
     float voteAverage;
 
+    boolean favourite;
+
     public Movie() {
     }
 
@@ -59,6 +61,7 @@ public class Movie implements Parcelable {
         hasVideo = cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_VIDEO)) == 1 ? true : false;
         voteAverage = cursor.getFloat(cursor.getColumnIndex(MovieEntry.COLUMN_VOTE_AVERAGE));
         voteCount = cursor.getLong(cursor.getColumnIndex(MovieEntry.COLUMN_VOTE_COUNT));
+        favourite = cursor.getInt(cursor.getColumnIndex(MovieEntry.COLUMN_FAVOURITE)) == 1 ? true : false;
     }
 
     protected Movie(Parcel in) {
@@ -76,6 +79,7 @@ public class Movie implements Parcelable {
         voteCount = in.readLong();
         hasVideo = in.readByte() != 0;
         voteAverage = in.readFloat();
+        favourite = in.readByte() != 0;
     }
 
     @Override
@@ -94,6 +98,7 @@ public class Movie implements Parcelable {
         dest.writeLong(voteCount);
         dest.writeByte((byte) (hasVideo ? 1 : 0));
         dest.writeFloat(voteAverage);
+        dest.writeByte((byte) (favourite ? 1 : 0));
     }
 
     @Override
@@ -128,6 +133,7 @@ public class Movie implements Parcelable {
         contentValues.put(MovieEntry.COLUMN_VOTE_COUNT, getVoteCount());
         contentValues.put(MovieEntry.COLUMN_VIDEO, isHasVideo());
         contentValues.put(MovieEntry.COLUMN_VOTE_AVERAGE, getVoteAverage());
+        contentValues.put(MovieEntry.COLUMN_FAVOURITE, isFavourite());
         return contentValues;
     }
 
@@ -243,8 +249,15 @@ public class Movie implements Parcelable {
         this.voteAverage = voteAverage;
     }
 
+    public boolean isFavourite() {
+        return favourite;
+    }
 
-    //Local storage definition
+    public void setFavourite(boolean favourite) {
+        this.favourite = favourite;
+    }
+
+//Local storage definition
 
     public static final String AUTHORITY = "info.kasimkovacevic.popularmovies";
 
@@ -272,6 +285,7 @@ public class Movie implements Parcelable {
         public static final String COLUMN_VOTE_COUNT = "vote_count";
         public static final String COLUMN_VIDEO = "video";
         public static final String COLUMN_VOTE_AVERAGE = "vote_average";
+        public static final String COLUMN_FAVOURITE = "favourite";
     }
     //
 

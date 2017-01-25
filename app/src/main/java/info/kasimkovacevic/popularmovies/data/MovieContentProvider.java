@@ -111,13 +111,23 @@ public class MovieContentProvider extends ContentProvider {
         if (moviesDeleted != 0) {
             getContext().getContentResolver().notifyChange(uri, null);
         }
-
         return moviesDeleted;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        throw new UnsupportedOperationException("NOT IMPLEMENTED METHOD");
+        final SQLiteDatabase db = mMovieDBHelper.getWritableDatabase();
+        int match = sUriMatcher.match(uri);
+        int affectedRows = 0;
+        switch (match) {
+            case MOVIE_WITH_ID:
+                affectedRows = db.update(TABLE_NAME, values, selection, selectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return affectedRows;
     }
 
     @Nullable
@@ -125,7 +135,6 @@ public class MovieContentProvider extends ContentProvider {
     public String getType(Uri uri) {
         throw new UnsupportedOperationException("NOT IMPLEMENTED METHOD");
     }
-
 
 
 }

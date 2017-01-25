@@ -21,6 +21,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.adapters.MoviesAdapter;
+import info.kasimkovacevic.popularmovies.data.DBHelper;
 import info.kasimkovacevic.popularmovies.utils.MoviesUtil;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<List<Movie>> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int MOVIES_LOADER_ID = 10;
+    private static final int FAVOURITES_MOVIES_LOADER_ID = 10;
 
     @BindView(R.id.tv_error)
     TextView errorTextView;
@@ -67,6 +68,13 @@ public class MainActivity extends AppCompatActivity implements
         callApiForNewData();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (moviesEnum == MOVIES_ENUM.FAVOURITES) {
+            getSupportLoaderManager().restartLoader(FAVOURITES_MOVIES_LOADER_ID, null, this);
+        }
+    }
 
     private void callApiForNewData() {
         onRequestStart();
@@ -118,16 +126,19 @@ public class MainActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             case R.id.action_sort_by_popularity:
                 moviesEnum = MOVIES_ENUM.POPULAR;
-                getSupportLoaderManager().destroyLoader(MOVIES_LOADER_ID);
+                getSupportLoaderManager().destroyLoader(FAVOURITES_MOVIES_LOADER_ID);
                 callApiForNewData();
+                break;
             case R.id.action_sort_by_rating:
-                getSupportLoaderManager().destroyLoader(MOVIES_LOADER_ID);
                 moviesEnum = MOVIES_ENUM.TOP_RATED;
+                getSupportLoaderManager().destroyLoader(FAVOURITES_MOVIES_LOADER_ID);
                 callApiForNewData();
+                break;
             case R.id.action_show_favorites:
-                getSupportLoaderManager().restartLoader(MOVIES_LOADER_ID, null, this);
+                moviesEnum = MOVIES_ENUM.FAVOURITES;
+                getSupportLoaderManager().restartLoader(FAVOURITES_MOVIES_LOADER_ID, null, this);
+                break;
         }
-
         return true;
     }
 
@@ -170,12 +181,11 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public List<Movie> loadInBackground() {
-
+                String[] args = {String.valueOf(1)};
                 try {
                     Cursor cursor = getContentResolver().query(Movie.MovieEntry.CONTENT_URI,
                             null,
-                            null,
-                            null,
+                            Movie.MovieEntry.COLUMN_FAVOURITE + "=?", args,
                             Movie.MovieEntry.COLUMN_VOTE_AVERAGE);
 
                     return MoviesUtil.parseListOfMoviesFromCursor(cursor);
@@ -196,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
-        moviesAdapter.setMovies(data);
+        onSuccess(data);
     }
 
     @Override
