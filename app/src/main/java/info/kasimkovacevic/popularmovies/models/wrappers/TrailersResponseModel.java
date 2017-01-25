@@ -1,8 +1,10 @@
-package info.kasimkovacevic.popularmovies.models;
+package info.kasimkovacevic.popularmovies.models.wrappers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+
+import info.kasimkovacevic.popularmovies.models.Trailer;
 
 /**
  * Created by kasimkovacevic1 on 1/25/17.

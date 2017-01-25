@@ -17,11 +17,13 @@ import com.squareup.picasso.Picasso;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
+import info.kasimkovacevic.popularmovies.adapters.ReviewsAdapter;
 import info.kasimkovacevic.popularmovies.adapters.TrailersAdapter;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
-import info.kasimkovacevic.popularmovies.models.TrailersResponseModel;
+import info.kasimkovacevic.popularmovies.models.wrappers.ReviewsResponseModel;
+import info.kasimkovacevic.popularmovies.models.wrappers.TrailersResponseModel;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
 import rx.Observable;
 import rx.Observer;
@@ -46,11 +48,16 @@ public class MovieDetailsActivity extends AppCompatActivity {
     ImageButton addMoviesToFavoritesImageButton;
     @BindView(R.id.rv_trailers)
     RecyclerView trailersRecyclerView;
+    @BindView(R.id.rv_reviews)
+    RecyclerView reviewsRecyclerView;
 
 
     private TrailersAdapter trailersAdapter;
+    private ReviewsAdapter reviewsAdapter;
+
     private TheMovieDBService theMovieDBService;
     private Observable<TrailersResponseModel> trailersResponse;
+    private Observable<ReviewsResponseModel> reviewsResponse;
 
 
     @Override
@@ -84,15 +91,45 @@ public class MovieDetailsActivity extends AppCompatActivity {
             }
         });
         trailersAdapter = new TrailersAdapter(MovieDetailsActivity.this, null);
-        LinearLayoutManager gridLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
-        trailersRecyclerView.setLayoutManager(gridLayoutManager);
+        reviewsAdapter = new ReviewsAdapter(null);
+
+        LinearLayoutManager trailersLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
+        trailersRecyclerView.setLayoutManager(trailersLayoutManager);
+        LinearLayoutManager reviewsLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
+        reviewsRecyclerView.setLayoutManager(reviewsLayoutManager);
+
         trailersRecyclerView.setAdapter(trailersAdapter);
+        reviewsRecyclerView.setAdapter(reviewsAdapter);
         theMovieDBService = RestClientRouter.get();
         loadTrailers();
+        loadReviews();
+    }
+
+    private void loadReviews() {
+        reviewsResponse = theMovieDBService.loadReviewsForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+        reviewsResponse.subscribeOn(Schedulers.io()).
+                observeOn(AndroidSchedulers.mainThread()
+                ).
+                subscribe(new Observer<ReviewsResponseModel>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onNext(ReviewsResponseModel model) {
+                        reviewsAdapter.setReviews(model.getReviews());
+                    }
+                });
     }
 
     private void loadTrailers() {
-        trailersResponse = theMovieDBService.listTrailersForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+        trailersResponse = theMovieDBService.loadTrailersForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
         trailersResponse.subscribeOn(Schedulers.io()).
                 observeOn(AndroidSchedulers.mainThread()
                 ).

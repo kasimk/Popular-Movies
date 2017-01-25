@@ -25,7 +25,7 @@ import info.kasimkovacevic.popularmovies.utils.MoviesUtil;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
-import info.kasimkovacevic.popularmovies.models.MoviesResponseModel;
+import info.kasimkovacevic.popularmovies.models.wrappers.MoviesResponseModel;
 import info.kasimkovacevic.popularmovies.utils.MOVIES_ENUM;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
 import rx.Observable;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void callApiForNewData() {
         onRequestStart();
-        response = theMovieDBService.listPopularMovies(moviesEnum.toString(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+        response = theMovieDBService.loadMovies(moviesEnum.toString(), NetworkUtils.THE_MOVIE_DB_API_KEY);
         response.subscribeOn(Schedulers.io()).
                 observeOn(AndroidSchedulers.mainThread()
                 ).
