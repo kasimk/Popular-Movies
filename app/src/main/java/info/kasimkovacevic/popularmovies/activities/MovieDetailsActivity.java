@@ -57,6 +57,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         movieReleaseDateTextView.setText(movie.getReleaseDate());
         Picasso.with(MovieDetailsActivity.this).load(NetworkUtils.buildPhotoUrl(movie.getPosterPath())).into(moviePosterImageView);
 
+        addMoviesToFavoritesImageButton.setEnabled(false);
         addMoviesToFavoritesImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
