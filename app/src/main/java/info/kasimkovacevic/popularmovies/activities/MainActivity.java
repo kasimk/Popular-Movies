@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int FAVOURITES_MOVIES_LOADER_ID = 10;
+    private static final String SORT_BY_KEY = "info.kasimkovacevic.popularmovies.SORT_BY_KEY";
 
     @BindView(R.id.tv_error)
     TextView errorTextView;
@@ -67,7 +69,12 @@ public class MainActivity extends AppCompatActivity implements
         moviesRecyclerView.setAdapter(moviesAdapter);
         moviesEnum = MOVIES_ENUM.POPULAR;
         theMovieDBService = RestClientRouter.get();
-        callApiForNewData();
+        if (savedInstanceState != null && savedInstanceState.getSerializable(SORT_BY_KEY) != null) {
+            moviesEnum = (MOVIES_ENUM) savedInstanceState.getSerializable(SORT_BY_KEY);
+        }
+        if (moviesEnum == MOVIES_ENUM.POPULAR || moviesEnum == MOVIES_ENUM.TOP_RATED) {
+            callApiForNewData();
+        }
     }
 
     @Override
@@ -121,6 +128,12 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onFailure(String error) {
         showError(error);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(SORT_BY_KEY, moviesEnum);
     }
 
     @Override
