@@ -9,6 +9,7 @@ import android.net.Uri;
 import info.kasimkovacevic.popularmovies.models.Movie;
 import info.kasimkovacevic.popularmovies.models.Movie.MovieEntry;
 import info.kasimkovacevic.popularmovies.models.Review;
+import info.kasimkovacevic.popularmovies.models.Trailer;
 
 /**
  * Created by kasimkovacevic1 on 1/24/17.
@@ -16,7 +17,7 @@ import info.kasimkovacevic.popularmovies.models.Review;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "moviesDB.db";
-    private static final int VERSION = 5;
+    private static final int VERSION = 1;
 
     public static void insertOrUpdateMovie(Context context, Movie movie) {
         String stringId = Long.toString(movie.getId());
@@ -39,6 +40,18 @@ public class DBHelper extends SQLiteOpenHelper {
         int rows = context.getContentResolver().update(uri, contentValues, Review.ReviewEntry.COLUMN_ID + "=?", args);
         if (rows == 0) {
             context.getContentResolver().insert(Review.ReviewEntry.CONTENT_URI, contentValues);
+        }
+    }
+
+    public static void insertOrUpdateTrailer(Context context, Trailer trailer) {
+        String stringId = trailer.getId();
+        Uri uri = Trailer.TrailerEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
+        String[] args = {stringId};
+        ContentValues contentValues = trailer.getContentValues();
+        int rows = context.getContentResolver().update(uri, contentValues, Trailer.TrailerEntry.COLUMN_ID + "=?", args);
+        if (rows == 0) {
+            context.getContentResolver().insert(Trailer.TrailerEntry.CONTENT_URI, contentValues);
         }
     }
 
@@ -67,21 +80,35 @@ public class DBHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_FOR_ADULT + " BOOLEAN);";
 
         final String CREATE_REVIEWS_TABLE = "CREATE TABLE " + Review.ReviewEntry.TABLE_NAME + " (" +
-                Review.ReviewEntry.COLUMN_ID + " STRING PRIMARY KEY, " +
+                Review.ReviewEntry.COLUMN_ID + " TEXT PRIMARY KEY, " +
                 Review.ReviewEntry.COLUMN_AUTHOR + " TEXT NOT NULL, " +
                 Review.ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
                 Review.ReviewEntry.COLUMN_URL + " TEXT, " +
                 Review.ReviewEntry.COLUMN_MOVIE_ID + " INTEGER, " +
                 " FOREIGN KEY (" + Review.ReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " + MovieEntry.TABLE_NAME + "(" + MovieEntry.COLUMN_ID + "));";
 
+        final String CREATE_TRAILERS_TABLE = "CREATE TABLE " + Trailer.TrailerEntry.TABLE_NAME + " (" +
+                Trailer.TrailerEntry.COLUMN_ID + " TEXT PRIMARY KEY, " +
+                Trailer.TrailerEntry.COLUMN_ISO_639 + " TEXT, " +
+                Trailer.TrailerEntry.COLUMN_ISO_3166 + " TEXT, " +
+                Trailer.TrailerEntry.COLUMN_KEY + " TEXT NOT NULL, " +
+                Trailer.TrailerEntry.COLUMN_NAME + " TEXT NOT NULL, " +
+                Trailer.TrailerEntry.COLUMN_SITE + " TEXT, " +
+                Trailer.TrailerEntry.COLUMN_SIZE + " LONG, " +
+                Trailer.TrailerEntry.COLUMN_TYPE + " TEXT, " +
+                Trailer.TrailerEntry.COLUMN_MOVIE_ID + " INTEGER, " +
+                " FOREIGN KEY (" + Trailer.TrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES " + MovieEntry.TABLE_NAME + "(" + MovieEntry.COLUMN_ID + "));";
+
         db.execSQL(CREATE_MOVIES_TABLE);
         db.execSQL(CREATE_REVIEWS_TABLE);
+        db.execSQL(CREATE_TRAILERS_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + MovieEntry.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + Review.ReviewEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + Trailer.TrailerEntry.TABLE_NAME);
         onCreate(db);
     }
 }

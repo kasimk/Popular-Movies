@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 
 import info.kasimkovacevic.popularmovies.models.Movie;
 import info.kasimkovacevic.popularmovies.models.Review;
+import info.kasimkovacevic.popularmovies.models.Trailer;
 
 public class MovieContentProvider extends ContentProvider {
 
@@ -20,6 +21,8 @@ public class MovieContentProvider extends ContentProvider {
     public static final int MOVIE_WITH_ID = 101;
     public static final int REVIEWS = 102;
     public static final int REVIEWS_WITH_ID = 103;
+    public static final int TRAILERS = 104;
+    public static final int TRAILERS_WITH_ID = 105;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -31,6 +34,8 @@ public class MovieContentProvider extends ContentProvider {
         uriMatcher.addURI(Movie.AUTHORITY, Movie.PATH_MOVIES + "/#", MOVIE_WITH_ID);
         uriMatcher.addURI(Review.AUTHORITY, Review.PATH_REVIEWS, REVIEWS);
         uriMatcher.addURI(Review.AUTHORITY, Review.PATH_REVIEWS + "/*", REVIEWS_WITH_ID);
+        uriMatcher.addURI(Trailer.AUTHORITY, Trailer.PATH_TRAILERS, TRAILERS);
+        uriMatcher.addURI(Trailer.AUTHORITY, Trailer.PATH_TRAILERS + "/*", TRAILERS_WITH_ID);
 
         return uriMatcher;
     }
@@ -63,6 +68,14 @@ public class MovieContentProvider extends ContentProvider {
                 id = db.insert(Review.ReviewEntry.TABLE_NAME, null, values);
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(Review.ReviewEntry.CONTENT_URI, id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            case TRAILERS:
+                id = db.insert(Trailer.TrailerEntry.TABLE_NAME, null, values);
+                if (id > 0) {
+                    returnUri = ContentUris.withAppendedId(Trailer.TrailerEntry.CONTENT_URI, id);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -102,6 +115,15 @@ public class MovieContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case TRAILERS:
+                retCursor = db.query(Trailer.TrailerEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -126,6 +148,10 @@ public class MovieContentProvider extends ContentProvider {
                 id = uri.getPathSegments().get(1);
                 affectedRows = db.delete(Review.ReviewEntry.TABLE_NAME, "_id=?", new String[]{id});
                 break;
+            case TRAILERS_WITH_ID:
+                id = uri.getPathSegments().get(1);
+                affectedRows = db.delete(Trailer.TrailerEntry.TABLE_NAME, "_id=?", new String[]{id});
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -147,6 +173,9 @@ public class MovieContentProvider extends ContentProvider {
                 break;
             case REVIEWS_WITH_ID:
                 affectedRows = db.update(Review.ReviewEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            case TRAILERS_WITH_ID:
+                affectedRows = db.update(Trailer.TrailerEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

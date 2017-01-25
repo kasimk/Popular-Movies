@@ -41,6 +41,7 @@ public class Trailer {
         key = cursor.getString(cursor.getColumnIndex(TrailerEntry.COLUMN_KEY));
         name = cursor.getString(cursor.getColumnIndex(TrailerEntry.COLUMN_NAME));
         site = cursor.getString(cursor.getColumnIndex(TrailerEntry.COLUMN_SITE));
+        size = cursor.getLong(cursor.getColumnIndex(TrailerEntry.COLUMN_SIZE));
         type = cursor.getString(cursor.getColumnIndex(TrailerEntry.COLUMN_TYPE));
         movieId = cursor.getLong(cursor.getColumnIndex(TrailerEntry.COLUMN_MOVIE_ID));
     }
@@ -55,6 +56,7 @@ public class Trailer {
         contentValues.put(TrailerEntry.COLUMN_SITE, getSite());
         contentValues.put(TrailerEntry.COLUMN_TYPE, getType());
         contentValues.put(TrailerEntry.COLUMN_MOVIE_ID, getMovieId());
+        contentValues.put(TrailerEntry.COLUMN_SITE, getSize());
         return contentValues;
     }
 

@@ -31,6 +31,7 @@ import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
 import info.kasimkovacevic.popularmovies.models.Review;
+import info.kasimkovacevic.popularmovies.models.Trailer;
 import info.kasimkovacevic.popularmovies.models.wrappers.ReviewsResponseModel;
 import info.kasimkovacevic.popularmovies.models.wrappers.TrailersResponseModel;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
@@ -39,12 +40,15 @@ import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
+import static android.view.View.GONE;
+
 public class MovieDetailsActivity extends AppCompatActivity {
 
     public static final String POPULAR_MOVIES_MOVIE_EXTRA = "info.kasimkovacevic.popularmovies.MOVIE_EXTRA";
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
     private static final int MOVIE_TASK_ID = 101;
     private static final int REVIEWS_TASK_ID = 102;
+    private static final int TRAILERS_TASK_ID = 103;
 
     private Movie movie;
     @BindView(R.id.tv_movie_title)
@@ -63,6 +67,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
     RecyclerView trailersRecyclerView;
     @BindView(R.id.rv_reviews)
     RecyclerView reviewsRecyclerView;
+    @BindView(R.id.v_divider)
+    View firstLineDivider;
+    @BindView(R.id.v_divider_2)
+    View secondLineDivider;
+    @BindView(R.id.tv_reviews_label)
+    TextView reviewsLabel;
 
 
     private TrailersAdapter trailersAdapter;
@@ -122,7 +132,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
 
     private void loadReviews() {
-        if (NetworkUtils.hasInternetConnection()) {
+        if (NetworkUtils.isNetworkAvailable(MovieDetailsActivity.this)) {
             reviewsResponse = theMovieDBService.loadReviewsForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
             reviewsResponse.subscribeOn(Schedulers.io()).
                     observeOn(AndroidSchedulers.mainThread()
@@ -140,6 +150,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
                         @Override
                         public void onNext(ReviewsResponseModel model) {
+                            if (model.getReviews().size() == 0) {
+                                hideReviews();
+                            }
                             reviewsAdapter.setReviews(model.getReviews());
                             for (Review review : model.getReviews()) {
                                 review.setMovieId(movie.getId());
@@ -153,36 +166,68 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void loadTrailers() {
-        trailersResponse = theMovieDBService.loadTrailersForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
-        trailersResponse.subscribeOn(Schedulers.io()).
-                observeOn(AndroidSchedulers.mainThread()
-                ).
-                subscribe(new Observer<TrailersResponseModel>() {
-                    @Override
-                    public void onCompleted() {
+        if (NetworkUtils.isNetworkAvailable(MovieDetailsActivity.this)) {
+            trailersResponse = theMovieDBService.loadTrailersForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+            trailersResponse.subscribeOn(Schedulers.io()).
+                    observeOn(AndroidSchedulers.mainThread()
+                    ).
+                    subscribe(new Observer<TrailersResponseModel>() {
+                        @Override
+                        public void onCompleted() {
 
-                    }
+                        }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
+                        @Override
+                        public void onError(Throwable e) {
+                            e.printStackTrace();
+                        }
 
-                    @Override
-                    public void onNext(TrailersResponseModel model) {
-                        trailersAdapter.setTrailers(model.getTrailers());
-                    }
-                });
+                        @Override
+                        public void onNext(TrailersResponseModel model) {
+                            if (model.getTrailers().size() == 0) {
+                                hideTrailers();
+                            }
+                            trailersAdapter.setTrailers(model.getTrailers());
+                            for (Trailer trailer : model.getTrailers()) {
+                                trailer.setMovieId(movie.getId());
+                                DBHelper.insertOrUpdateTrailer(MovieDetailsActivity.this, trailer);
+                            }
+                        }
+                    });
+        } else {
+            loadTrailersFromDB();
+        }
 
     }
 
+    public void loadReviewsFromDB() {
+        getSupportLoaderManager().initLoader(REVIEWS_TASK_ID, null, reviewsCallback);
+    }
+
+    public void loadTrailersFromDB() {
+        getSupportLoaderManager().initLoader(TRAILERS_TASK_ID, null, trailersCallback);
+    }
+
+    private void hideReviews() {
+        reviewsRecyclerView.setVisibility(GONE);
+        secondLineDivider.setVisibility(GONE);
+        reviewsLabel.setVisibility(GONE);
+    }
+
+    private void hideTrailers() {
+        trailersRecyclerView.setVisibility(GONE);
+        firstLineDivider.setVisibility(GONE);
+    }
+
+    /**
+     * Definition of loaders
+     */
     private LoaderManager.LoaderCallbacks<Movie> movieCallbacks
             = new LoaderManager.LoaderCallbacks<Movie>() {
 
         @Override
         public Loader<Movie> onCreateLoader(int id, Bundle args) {
             return new AsyncTaskLoader<Movie>(MovieDetailsActivity.this) {
-
                 Movie mMovie = null;
 
                 @Override
@@ -289,6 +334,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         @Override
         public void onLoadFinished(Loader<List<Review>> loader, List<Review> data) {
+            if (data == null || data.size() == 0) {
+                hideReviews();
+            }
             reviewsAdapter.setReviews(data);
         }
 
@@ -299,10 +347,70 @@ public class MovieDetailsActivity extends AppCompatActivity {
     };
 
 
-    public void loadReviewsFromDB() {
-        getSupportLoaderManager().restartLoader(REVIEWS_TASK_ID, null, reviewsCallback);
-    }
+    private LoaderManager.LoaderCallbacks<List<Trailer>> trailersCallback
+            = new LoaderManager.LoaderCallbacks<List<Trailer>>() {
 
+        @Override
+        public Loader<List<Trailer>> onCreateLoader(int id, Bundle args) {
+            return new AsyncTaskLoader<List<Trailer>>(MovieDetailsActivity.this) {
+
+                List<Trailer> trailers = null;
+
+                @Override
+                protected void onStartLoading() {
+                    if (trailers != null) {
+                        deliverResult(trailers);
+                    } else {
+                        forceLoad();
+                    }
+                }
+
+                @Override
+                public List<Trailer> loadInBackground() {
+                    List<Trailer> trailers = new ArrayList<>();
+                    String[] args = {String.valueOf(movie.getId())};
+                    try {
+                        Uri uri = Trailer.TrailerEntry.CONTENT_URI;
+                        Cursor cursor = getContentResolver().query(uri,
+                                null,
+                                Trailer.TrailerEntry.COLUMN_MOVIE_ID + "=?", args,
+                                null);
+                        while (cursor.moveToNext()) {
+                            trailers.add(new Trailer(cursor));
+                        }
+                        return trailers;
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to asynchronously load data.");
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                public void deliverResult(List<Trailer> data) {
+                    if (data == null || data.size() == 0) {
+                        hideTrailers();
+                    }
+                    super.deliverResult(data);
+                }
+            };
+        }
+
+        @Override
+        public void onLoadFinished(Loader<List<Trailer>> loader, List<Trailer> data) {
+            trailersAdapter.setTrailers(data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<List<Trailer>> loader) {
+            trailersAdapter.setTrailers(null);
+        }
+    };
+
+
+    /**
+     * Definition of loaders END
+     */
 
 }
 
