@@ -1,6 +1,8 @@
 package info.kasimkovacevic.popularmovies.activities;
 
+import android.content.ContentValues;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -21,6 +23,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.adapters.MoviesAdapter;
+import info.kasimkovacevic.popularmovies.data.DBHelper;
 import info.kasimkovacevic.popularmovies.utils.MoviesUtil;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
@@ -96,8 +99,16 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void onNext(MoviesResponseModel model) {
                         onSuccess(model.getMovies());
+                        saveMoviewsInDB(model.getMovies());
                     }
                 });
+    }
+
+
+    private void saveMoviewsInDB(List<Movie> movies) {
+        for (Movie movie : movies) {
+            DBHelper.insertOrUpdateMovie(MainActivity.this, movie, true);
+        }
     }
 
     public void onRequestStart() {

@@ -111,7 +111,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                 } else {
                     addMoviesToFavoritesImageButton.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@android:drawable/btn_star_big_off", null, null)));
                 }
-                DBHelper.insertOrUpdateMovie(MovieDetailsActivity.this, movie);
+                DBHelper.insertOrUpdateMovie(MovieDetailsActivity.this, movie, false);
             }
         });
         trailersAdapter = new TrailersAdapter(MovieDetailsActivity.this, null);

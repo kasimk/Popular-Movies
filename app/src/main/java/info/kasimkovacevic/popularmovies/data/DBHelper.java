@@ -19,12 +19,15 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "moviesDB.db";
     private static final int VERSION = 1;
 
-    public static void insertOrUpdateMovie(Context context, Movie movie) {
+    public static void insertOrUpdateMovie(Context context, Movie movie, boolean removeFavourite) {
         String stringId = Long.toString(movie.getId());
         Uri uri = Movie.MovieEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(stringId).build();
         String[] args = {stringId};
         ContentValues contentValues = movie.getContentValues();
+        if (removeFavourite) {
+            contentValues.remove(MovieEntry.COLUMN_FAVOURITE);
+        }
         int rows = context.getContentResolver().update(uri, contentValues, Movie.MovieEntry.COLUMN_ID + "=?", args);
         if (rows == 0) {
             context.getContentResolver().insert(Movie.MovieEntry.CONTENT_URI, contentValues);
