@@ -28,6 +28,7 @@ import java.net.URLDecoder;
 import java.util.Scanner;
 
 import info.kasimkovacevic.popularmovies.BuildConfig;
+import info.kasimkovacevic.popularmovies.models.Trailer;
 
 /**
  * These utilities will be used to communicate with the network.
@@ -42,11 +43,16 @@ public class NetworkUtils {
      * THE_MOVIE_DB_PHOTOS_URL is used like base url for getting photos from image.tmdb.org
      */
     private final static String THE_MOVIE_DB_PHOTOS_URL = "http://image.tmdb.org/t/p/";
+
+    private final static String THE_YOUTUBE_BASE_URL = "http://youtube.com";
+
+    private final static String YOUTUBE_WATCH = "watch";
+    private final static String YOUTUBE_VIDEO_QUERY = "v";
+
     /**
      * THE_MOVIE_DB_API_KEY contains API key for api.themoviedb.org
      */
     public final static String THE_MOVIE_DB_API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
-
 
     /**
      * PHOTO_SIZE_W185 param is used for getting photo with width of 185 px
@@ -84,6 +90,9 @@ public class NetworkUtils {
         return Uri.parse(THE_MOVIE_DB_PHOTOS_URL).buildUpon().appendPath(PHOTO_SIZE_W342).appendPath(decodedPath).build();
     }
 
+    public static Uri buildTrailerUrl(Trailer trailer) {
+        return Uri.parse(THE_YOUTUBE_BASE_URL).buildUpon().appendPath(YOUTUBE_WATCH).appendQueryParameter(YOUTUBE_VIDEO_QUERY, trailer.getKey()).build();
+    }
 
 
 }

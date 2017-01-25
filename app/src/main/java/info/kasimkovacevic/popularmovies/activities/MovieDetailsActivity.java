@@ -1,10 +1,11 @@
 package info.kasimkovacevic.popularmovies.activities;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -16,8 +17,16 @@ import com.squareup.picasso.Picasso;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
+import info.kasimkovacevic.popularmovies.adapters.TrailersAdapter;
+import info.kasimkovacevic.popularmovies.data.RestClientRouter;
+import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
+import info.kasimkovacevic.popularmovies.models.TrailersResponseModel;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
+import rx.Observable;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class MovieDetailsActivity extends AppCompatActivity {
 
@@ -35,6 +44,13 @@ public class MovieDetailsActivity extends AppCompatActivity {
     ImageView moviePosterImageView;
     @BindView(R.id.ib_add_movie_to_favorites)
     ImageButton addMoviesToFavoritesImageButton;
+    @BindView(R.id.rv_trailers)
+    RecyclerView trailersRecyclerView;
+
+
+    private TrailersAdapter trailersAdapter;
+    private TheMovieDBService theMovieDBService;
+    private Observable<TrailersResponseModel> trailersResponse;
 
 
     @Override
@@ -67,5 +83,37 @@ public class MovieDetailsActivity extends AppCompatActivity {
                 }
             }
         });
+        trailersAdapter = new TrailersAdapter(MovieDetailsActivity.this, null);
+        LinearLayoutManager gridLayoutManager = new LinearLayoutManager(MovieDetailsActivity.this);
+        trailersRecyclerView.setLayoutManager(gridLayoutManager);
+        trailersRecyclerView.setAdapter(trailersAdapter);
+        theMovieDBService = RestClientRouter.get();
+        loadTrailers();
     }
+
+    private void loadTrailers() {
+        trailersResponse = theMovieDBService.listTrailersForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+        trailersResponse.subscribeOn(Schedulers.io()).
+                observeOn(AndroidSchedulers.mainThread()
+                ).
+                subscribe(new Observer<TrailersResponseModel>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onNext(TrailersResponseModel model) {
+                        trailersAdapter.setTrailers(model.getTrailers());
+                    }
+                });
+
+    }
+
 }
+

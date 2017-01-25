@@ -4,4 +4,5 @@
     <string name="sort_by_popularity">Sort by popularity</string>
     <string name="sort_by_rating">Sort by rating</string>
     <string name="show_favorites">Show favorites</string>
+    <string name="youtube_video_app_missing">There is no application on your phone to handle youtube video</string>
 </resources>
