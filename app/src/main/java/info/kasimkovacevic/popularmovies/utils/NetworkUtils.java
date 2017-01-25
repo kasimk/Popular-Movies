@@ -95,4 +95,7 @@ public class NetworkUtils {
     }
 
 
+    public static boolean hasInternetConnection() {
+        return false;
+    }
 }

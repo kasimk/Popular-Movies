@@ -1,6 +1,5 @@
 package info.kasimkovacevic.popularmovies.activities;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -19,6 +18,9 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
@@ -28,6 +30,7 @@ import info.kasimkovacevic.popularmovies.data.DBHelper;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
 import info.kasimkovacevic.popularmovies.models.Movie;
+import info.kasimkovacevic.popularmovies.models.Review;
 import info.kasimkovacevic.popularmovies.models.wrappers.ReviewsResponseModel;
 import info.kasimkovacevic.popularmovies.models.wrappers.TrailersResponseModel;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
@@ -36,11 +39,12 @@ import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class MovieDetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie> {
+public class MovieDetailsActivity extends AppCompatActivity {
 
     public static final String POPULAR_MOVIES_MOVIE_EXTRA = "info.kasimkovacevic.popularmovies.MOVIE_EXTRA";
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
     private static final int MOVIE_TASK_ID = 101;
+    private static final int REVIEWS_TASK_ID = 102;
 
     private Movie movie;
     @BindView(R.id.tv_movie_title)
@@ -113,31 +117,39 @@ public class MovieDetailsActivity extends AppCompatActivity implements LoaderMan
         theMovieDBService = RestClientRouter.get();
         loadTrailers();
         loadReviews();
-        getSupportLoaderManager().initLoader(MOVIE_TASK_ID, null, this);
+        getSupportLoaderManager().initLoader(MOVIE_TASK_ID, null, movieCallbacks);
     }
 
 
     private void loadReviews() {
-        reviewsResponse = theMovieDBService.loadReviewsForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
-        reviewsResponse.subscribeOn(Schedulers.io()).
-                observeOn(AndroidSchedulers.mainThread()
-                ).
-                subscribe(new Observer<ReviewsResponseModel>() {
-                    @Override
-                    public void onCompleted() {
+        if (NetworkUtils.hasInternetConnection()) {
+            reviewsResponse = theMovieDBService.loadReviewsForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
+            reviewsResponse.subscribeOn(Schedulers.io()).
+                    observeOn(AndroidSchedulers.mainThread()
+                    ).
+                    subscribe(new Observer<ReviewsResponseModel>() {
+                        @Override
+                        public void onCompleted() {
 
-                    }
+                        }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
+                        @Override
+                        public void onError(Throwable e) {
+                            e.printStackTrace();
+                        }
 
-                    @Override
-                    public void onNext(ReviewsResponseModel model) {
-                        reviewsAdapter.setReviews(model.getReviews());
-                    }
-                });
+                        @Override
+                        public void onNext(ReviewsResponseModel model) {
+                            reviewsAdapter.setReviews(model.getReviews());
+                            for (Review review : model.getReviews()) {
+                                review.setMovieId(movie.getId());
+                                DBHelper.insertOrUpdateReview(MovieDetailsActivity.this, review);
+                            }
+                        }
+                    });
+        } else {
+            loadReviewsFromDB();
+        }
     }
 
     private void loadTrailers() {
@@ -164,64 +176,133 @@ public class MovieDetailsActivity extends AppCompatActivity implements LoaderMan
 
     }
 
-    @Override
-    public Loader<Movie> onCreateLoader(int id, Bundle args) {
-        return new AsyncTaskLoader<Movie>(this) {
+    private LoaderManager.LoaderCallbacks<Movie> movieCallbacks
+            = new LoaderManager.LoaderCallbacks<Movie>() {
 
-            Movie mMovie = null;
+        @Override
+        public Loader<Movie> onCreateLoader(int id, Bundle args) {
+            return new AsyncTaskLoader<Movie>(MovieDetailsActivity.this) {
 
-            @Override
-            protected void onStartLoading() {
-                if (mMovie != null) {
-                    deliverResult(mMovie);
-                } else {
-                    forceLoad();
-                }
-            }
+                Movie mMovie = null;
 
-            @Override
-            public Movie loadInBackground() {
-                String[] args = {String.valueOf(movie.getId())};
-                try {
-                    Uri uri = Movie.MovieEntry.CONTENT_URI;
-                    Cursor cursor = getContentResolver().query(uri,
-                            null,
-                            Movie.MovieEntry.COLUMN_ID + "=?", args,
-                            Movie.MovieEntry.COLUMN_VOTE_AVERAGE);
-                    if (cursor.moveToNext()) {
-                        return new Movie(cursor);
+                @Override
+                protected void onStartLoading() {
+                    if (mMovie != null) {
+                        deliverResult(mMovie);
+                    } else {
+                        forceLoad();
                     }
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to asynchronously load data.");
-                    e.printStackTrace();
                 }
-                return null;
-            }
 
-            public void deliverResult(Movie data) {
-                super.deliverResult(data);
-            }
-        };
-    }
+                @Override
+                public Movie loadInBackground() {
+                    String[] args = {String.valueOf(movie.getId())};
+                    try {
+                        Uri uri = Movie.MovieEntry.CONTENT_URI;
+                        Cursor cursor = getContentResolver().query(uri,
+                                null,
+                                Movie.MovieEntry.COLUMN_ID + "=?", args,
+                                Movie.MovieEntry.COLUMN_VOTE_AVERAGE);
+                        if (cursor.moveToNext()) {
+                            return new Movie(cursor);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to asynchronously load data.");
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
 
-    @Override
-    public void onLoadFinished(Loader<Movie> loader, Movie data) {
-        int res;
-        if (data != null && data.isFavourite()) {
-            res = getResources().getIdentifier("@android:drawable/btn_star_big_on", null, null);
-            movie.setFavourite(true);
-        } else {
-            res = getResources().getIdentifier("@android:drawable/btn_star_big_off", null, null);
-            movie.setFavourite(false);
+                public void deliverResult(Movie data) {
+                    super.deliverResult(data);
+                }
+            };
         }
-        addMoviesToFavoritesImageButton.setEnabled(true);
-        addMoviesToFavoritesImageButton.setImageDrawable(getResources().getDrawable(res));
 
+        @Override
+        public void onLoadFinished(Loader<Movie> loader, Movie data) {
+            int res;
+            if (data != null && data.isFavourite()) {
+                res = getResources().getIdentifier("@android:drawable/btn_star_big_on", null, null);
+                movie.setFavourite(true);
+            } else {
+                res = getResources().getIdentifier("@android:drawable/btn_star_big_off", null, null);
+                movie.setFavourite(false);
+            }
+            addMoviesToFavoritesImageButton.setEnabled(true);
+            addMoviesToFavoritesImageButton.setImageDrawable(getResources().getDrawable(res));
+
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Movie> loader) {
+
+        }
+
+    };
+
+    private LoaderManager.LoaderCallbacks<List<Review>> reviewsCallback
+            = new LoaderManager.LoaderCallbacks<List<Review>>() {
+
+        @Override
+        public Loader<List<Review>> onCreateLoader(int id, Bundle args) {
+            return new AsyncTaskLoader<List<Review>>(MovieDetailsActivity.this) {
+
+                List<Review> reviews = null;
+
+                @Override
+                protected void onStartLoading() {
+                    if (reviews != null) {
+                        deliverResult(reviews);
+                    } else {
+                        forceLoad();
+                    }
+                }
+
+                @Override
+                public List<Review> loadInBackground() {
+                    List<Review> reviews = new ArrayList<>();
+                    String[] args = {String.valueOf(movie.getId())};
+                    try {
+                        Uri uri = Review.ReviewEntry.CONTENT_URI;
+                        Cursor cursor = getContentResolver().query(uri,
+                                null,
+                                Review.ReviewEntry.COLUMN_MOVIE_ID + "=?", args,
+                                null);
+                        while (cursor.moveToNext()) {
+                            reviews.add(new Review(cursor));
+                        }
+                        return reviews;
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to asynchronously load data.");
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                public void deliverResult(List<Review> data) {
+                    super.deliverResult(data);
+                }
+            };
+        }
+
+        @Override
+        public void onLoadFinished(Loader<List<Review>> loader, List<Review> data) {
+            reviewsAdapter.setReviews(data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<List<Review>> loader) {
+            reviewsAdapter.setReviews(null);
+        }
+    };
+
+
+    public void loadReviewsFromDB() {
+        getSupportLoaderManager().restartLoader(REVIEWS_TASK_ID, null, reviewsCallback);
     }
 
-    @Override
-    public void onLoaderReset(Loader<Movie> loader) {
 
-    }
 }
 

@@ -12,13 +12,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import info.kasimkovacevic.popularmovies.models.Movie;
-
-import static info.kasimkovacevic.popularmovies.models.Movie.MovieEntry.TABLE_NAME;
+import info.kasimkovacevic.popularmovies.models.Review;
 
 public class MovieContentProvider extends ContentProvider {
 
     public static final int MOVIES = 100;
     public static final int MOVIE_WITH_ID = 101;
+    public static final int REVIEWS = 102;
+    public static final int REVIEWS_WITH_ID = 103;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -28,16 +29,18 @@ public class MovieContentProvider extends ContentProvider {
 
         uriMatcher.addURI(Movie.AUTHORITY, Movie.PATH_MOVIES, MOVIES);
         uriMatcher.addURI(Movie.AUTHORITY, Movie.PATH_MOVIES + "/#", MOVIE_WITH_ID);
+        uriMatcher.addURI(Review.AUTHORITY, Review.PATH_REVIEWS, REVIEWS);
+        uriMatcher.addURI(Review.AUTHORITY, Review.PATH_REVIEWS + "/*", REVIEWS_WITH_ID);
 
         return uriMatcher;
     }
 
-    private MovieDBHelper mMovieDBHelper;
+    private DBHelper mMovieDBHelper;
 
     @Override
     public boolean onCreate() {
         Context context = getContext();
-        mMovieDBHelper = new MovieDBHelper(context);
+        mMovieDBHelper = new DBHelper(context);
         return true;
     }
 
@@ -46,11 +49,20 @@ public class MovieContentProvider extends ContentProvider {
         final SQLiteDatabase db = mMovieDBHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
         Uri returnUri;
+        long id = 0;
         switch (match) {
             case MOVIES:
-                long id = db.insert(TABLE_NAME, null, values);
+                id = db.insert(Movie.MovieEntry.TABLE_NAME, null, values);
                 if (id > 0) {
                     returnUri = ContentUris.withAppendedId(Movie.MovieEntry.CONTENT_URI, id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            case REVIEWS:
+                id = db.insert(Review.ReviewEntry.TABLE_NAME, null, values);
+                if (id > 0) {
+                    returnUri = ContentUris.withAppendedId(Review.ReviewEntry.CONTENT_URI, id);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -73,7 +85,16 @@ public class MovieContentProvider extends ContentProvider {
 
         switch (match) {
             case MOVIES:
-                retCursor = db.query(TABLE_NAME,
+                retCursor = db.query(Movie.MovieEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            case REVIEWS:
+                retCursor = db.query(Review.ReviewEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -92,26 +113,27 @@ public class MovieContentProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
-
         final SQLiteDatabase db = mMovieDBHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
-        int moviesDeleted; // starts as 0
+        int affectedRows;
+        String id = "";
         switch (match) {
-            // Handle the single item case, recognized by the ID included in the URI path
             case MOVIE_WITH_ID:
-                // Get the task ID from the URI path
-                String id = uri.getPathSegments().get(1);
-                // Use selections/selectionArgs to filter for this ID
-                moviesDeleted = db.delete(TABLE_NAME, "_id=?", new String[]{id});
+                id = uri.getPathSegments().get(1);
+                affectedRows = db.delete(Movie.MovieEntry.TABLE_NAME, "_id=?", new String[]{id});
+                break;
+            case REVIEWS_WITH_ID:
+                id = uri.getPathSegments().get(1);
+                affectedRows = db.delete(Review.ReviewEntry.TABLE_NAME, "_id=?", new String[]{id});
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
 
-        if (moviesDeleted != 0) {
+        if (affectedRows != 0) {
             getContext().getContentResolver().notifyChange(uri, null);
         }
-        return moviesDeleted;
+        return affectedRows;
     }
 
     @Override
@@ -121,7 +143,10 @@ public class MovieContentProvider extends ContentProvider {
         int affectedRows = 0;
         switch (match) {
             case MOVIE_WITH_ID:
-                affectedRows = db.update(TABLE_NAME, values, selection, selectionArgs);
+                affectedRows = db.update(Movie.MovieEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            case REVIEWS_WITH_ID:
+                affectedRows = db.update(Review.ReviewEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

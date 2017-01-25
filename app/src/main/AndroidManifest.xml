@@ -32,7 +32,6 @@
             android:name="info.kasimkovacevic.popularmovies.data.MovieContentProvider"
             android:authorities="info.kasimkovacevic.popularmovies"
             android:exported="false" />
-
     </application>
 
 

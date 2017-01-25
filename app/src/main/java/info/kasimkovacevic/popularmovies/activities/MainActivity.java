@@ -21,7 +21,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.adapters.MoviesAdapter;
-import info.kasimkovacevic.popularmovies.data.DBHelper;
 import info.kasimkovacevic.popularmovies.utils.MoviesUtil;
 import info.kasimkovacevic.popularmovies.data.RestClientRouter;
 import info.kasimkovacevic.popularmovies.data.TheMovieDBService;
