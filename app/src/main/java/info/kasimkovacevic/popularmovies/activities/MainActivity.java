@@ -1,5 +1,6 @@
 package info.kasimkovacevic.popularmovies.activities;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
@@ -32,10 +33,14 @@ import info.kasimkovacevic.popularmovies.models.Movie;
 import info.kasimkovacevic.popularmovies.models.wrappers.MoviesResponseModel;
 import info.kasimkovacevic.popularmovies.utils.MOVIES_ENUM;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
+import info.kasimkovacevic.popularmovies.utils.ScreenUtils;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<List<Movie>> {
@@ -63,7 +68,8 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
+        int numOfSpans = ScreenUtils.getScreenWidth() / 260 + 1;
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, numOfSpans);
         moviesRecyclerView.setLayoutManager(gridLayoutManager);
         moviesAdapter = new MoviesAdapter(this);
         moviesRecyclerView.setAdapter(moviesAdapter);

@@ -10,6 +10,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -97,6 +98,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private void configureUI() {
         movieTitleTextView.setText(movie.getOriginalTitle());
         movieOverviewTextView.setText(movie.getOverview());
+
+
         movieRatingTextView.setText(String.valueOf(movie.getVoteAverage()));
         movieReleaseDateTextView.setText(movie.getReleaseDate());
         Picasso.with(MovieDetailsActivity.this).load(NetworkUtils.buildPhotoUrl(movie.getPosterPath())).into(moviePosterImageView);
