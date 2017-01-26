@@ -44,11 +44,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String SORT_BY_KEY = "info.kasimkovacevic.popularmovies.SORT_BY_KEY";
 
     @BindView(R.id.tv_error)
-    TextView errorTextView;
+    protected TextView errorTextView;
     @BindView(R.id.pb_loader)
-    ProgressBar loaderProgressBar;
+    protected ProgressBar loaderProgressBar;
     @BindView(R.id.rv_movies)
-    RecyclerView moviesRecyclerView;
+    protected RecyclerView moviesRecyclerView;
 
     private MoviesAdapter moviesAdapter;
     private MOVIES_ENUM moviesEnum;

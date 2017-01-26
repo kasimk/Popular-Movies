@@ -38,6 +38,8 @@ import info.kasimkovacevic.popularmovies.models.Trailer;
  */
 public class NetworkUtils {
 
+    private NetworkUtils(){}
+
     /**
      * THE_MOVIE_DB_BASE_URL is used like base url for getting data from api.themoviedb.org
      */

@@ -9,6 +9,9 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.activities.MovieDetailsActivity;
 import info.kasimkovacevic.popularmovies.models.Movie;
@@ -21,12 +24,13 @@ import static info.kasimkovacevic.popularmovies.activities.MovieDetailsActivity.
  */
 public class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-    ImageView movieBackDropImageView;
-    Movie movie;
+    @BindView(R.id.iv_movie_poster)
+    protected ImageView movieBackDropImageView;
+    protected Movie movie;
 
     public MovieViewHolder(final View itemView) {
         super(itemView);
-        movieBackDropImageView = (ImageView) itemView.findViewById(R.id.iv_movie_poster);
+        ButterKnife.bind(this, itemView);
         itemView.setOnClickListener(this);
     }
 

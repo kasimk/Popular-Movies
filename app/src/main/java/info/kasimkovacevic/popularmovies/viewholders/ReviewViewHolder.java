@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.models.Review;
 import info.kasimkovacevic.popularmovies.models.Trailer;
@@ -19,13 +21,14 @@ import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
  */
 public class ReviewViewHolder extends RecyclerView.ViewHolder {
 
-    TextView mReviewerNameTextView;
-    TextView mReviewContentTextView;
+    @BindView(R.id.tv_reviewer_name)
+    protected TextView mReviewerNameTextView;
+    @BindView(R.id.tv_review_content)
+    protected TextView mReviewContentTextView;
 
     public ReviewViewHolder(View itemView) {
         super(itemView);
-        mReviewerNameTextView = (TextView) itemView.findViewById(R.id.tv_reviewer_name);
-        mReviewContentTextView = (TextView) itemView.findViewById(R.id.tv_review_content);
+        ButterKnife.bind(this, itemView);
     }
 
 

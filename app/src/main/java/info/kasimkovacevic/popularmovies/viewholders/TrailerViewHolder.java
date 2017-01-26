@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import info.kasimkovacevic.popularmovies.R;
 import info.kasimkovacevic.popularmovies.models.Trailer;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
@@ -18,12 +20,13 @@ import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
  */
 public class TrailerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-    TextView mTrailerNameTextView;
-    Trailer mTrailer;
+    @BindView(R.id.tv_trailer_name)
+    protected TextView mTrailerNameTextView;
+    protected Trailer mTrailer;
 
     public TrailerViewHolder(View itemView) {
         super(itemView);
-        mTrailerNameTextView = (TextView) itemView.findViewById(R.id.tv_trailer_name);
+        ButterKnife.bind(this, itemView);
         itemView.setOnClickListener(this);
     }
 

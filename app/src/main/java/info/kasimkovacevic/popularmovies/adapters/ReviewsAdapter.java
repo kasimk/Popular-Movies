@@ -16,7 +16,7 @@ import info.kasimkovacevic.popularmovies.viewholders.ReviewViewHolder;
  */
 public class ReviewsAdapter extends RecyclerView.Adapter<ReviewViewHolder> {
 
-    List<Review> reviews;
+    private List<Review> reviews;
 
 
     public ReviewsAdapter(List<Review> reviews) {

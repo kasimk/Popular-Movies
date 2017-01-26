@@ -50,31 +50,30 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private static final int REVIEWS_TASK_ID = 102;
     private static final int TRAILERS_TASK_ID = 103;
 
-    private Movie movie;
     @BindView(R.id.tv_movie_title)
-    TextView movieTitleTextView;
+    protected TextView movieTitleTextView;
     @BindView(R.id.tv_movie_overview)
-    TextView movieOverviewTextView;
+    protected TextView movieOverviewTextView;
     @BindView(R.id.tv_user_rating)
-    TextView movieRatingTextView;
+    protected TextView movieRatingTextView;
     @BindView(R.id.tv_release_date)
-    TextView movieReleaseDateTextView;
+    protected TextView movieReleaseDateTextView;
     @BindView(R.id.iv_movie_poster)
-    ImageView moviePosterImageView;
+    protected ImageView moviePosterImageView;
     @BindView(R.id.ib_add_movie_to_favorites)
-    ImageButton addMoviesToFavoritesImageButton;
+    protected ImageButton addMoviesToFavoritesImageButton;
     @BindView(R.id.rv_trailers)
-    RecyclerView trailersRecyclerView;
+    protected RecyclerView trailersRecyclerView;
     @BindView(R.id.rv_reviews)
-    RecyclerView reviewsRecyclerView;
+    protected RecyclerView reviewsRecyclerView;
     @BindView(R.id.v_divider)
-    View firstLineDivider;
+    protected View firstLineDivider;
     @BindView(R.id.v_divider_2)
-    View secondLineDivider;
+    protected View secondLineDivider;
     @BindView(R.id.tv_reviews_label)
-    TextView reviewsLabel;
+    protected TextView reviewsLabel;
 
-
+    private Movie movie;
     private TrailersAdapter trailersAdapter;
     private ReviewsAdapter reviewsAdapter;
     private TheMovieDBService theMovieDBService;

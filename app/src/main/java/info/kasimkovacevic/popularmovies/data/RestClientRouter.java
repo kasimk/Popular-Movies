@@ -24,9 +24,13 @@ public class RestClientRouter {
 
     /**
      * Return singleton instance of {@link TheMovieDBService}
+     *
      * @return instance of {@link TheMovieDBService}
      */
-    public static TheMovieDBService get() {
+    public static synchronized TheMovieDBService get() {
+        if (theMovieDBService == null) {
+            setupRestClient();
+        }
         return theMovieDBService;
     }
 

@@ -19,8 +19,8 @@ import info.kasimkovacevic.popularmovies.viewholders.TrailerViewHolder;
  */
 public class TrailersAdapter extends RecyclerView.Adapter<TrailerViewHolder> {
 
-    List<Trailer> trailers;
-    Context context;
+    private List<Trailer> trailers;
+    private Context context;
 
 
     public TrailersAdapter(Context context, List<Trailer> trailers) {
