@@ -15,6 +15,9 @@
  */
 package info.kasimkovacevic.popularmovies.utils;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
@@ -28,25 +31,33 @@ import java.net.URLDecoder;
 import java.util.Scanner;
 
 import info.kasimkovacevic.popularmovies.BuildConfig;
+import info.kasimkovacevic.popularmovies.models.Trailer;
 
 /**
  * These utilities will be used to communicate with the network.
  */
 public class NetworkUtils {
 
+    private NetworkUtils(){}
+
     /**
      * THE_MOVIE_DB_BASE_URL is used like base url for getting data from api.themoviedb.org
      */
-    private final static String THE_MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie";
+    public final static String THE_MOVIE_DB_BASE_URL = "http://api.themoviedb.org/";
     /**
      * THE_MOVIE_DB_PHOTOS_URL is used like base url for getting photos from image.tmdb.org
      */
     private final static String THE_MOVIE_DB_PHOTOS_URL = "http://image.tmdb.org/t/p/";
+
+    private final static String THE_YOUTUBE_BASE_URL = "http://youtube.com";
+
+    private final static String YOUTUBE_WATCH = "watch";
+    private final static String YOUTUBE_VIDEO_QUERY = "v";
+
     /**
      * THE_MOVIE_DB_API_KEY contains API key for api.themoviedb.org
      */
-    private final static String THE_MOVIE_DB_API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
-
+    public final static String THE_MOVIE_DB_API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
 
     /**
      * PHOTO_SIZE_W185 param is used for getting photo with width of 185 px
@@ -59,7 +70,7 @@ public class NetworkUtils {
     /**
      * PARAM_API_KEY is url request param
      */
-    private final static String PARAM_API_KEY = "api_key";
+    public final static String PARAM_API_KEY = "api_key";
 
     private final static String UTF_8_ENCODING = "UTF-8";
 
@@ -84,51 +95,21 @@ public class NetworkUtils {
         return Uri.parse(THE_MOVIE_DB_PHOTOS_URL).buildUpon().appendPath(PHOTO_SIZE_W342).appendPath(decodedPath).build();
     }
 
-    /**
-     * These method return {@link URL} for fetch data from themoviedb.org
-     *
-     * @param moviesEnum is used for sorting movies, sorting can be by popularity and top rated value
-     * @return object of {@link URL} for fetching data from themoviedb.org
-     */
-    public static URL buildUrl(MOVIES_ENUM moviesEnum) {
-        Uri builtUri = Uri.parse(THE_MOVIE_DB_BASE_URL).buildUpon()
-                .appendPath(moviesEnum.toString())
-                .appendQueryParameter(PARAM_API_KEY, THE_MOVIE_DB_API_KEY)
-                .build();
-
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        return url;
+    public static Uri buildTrailerUrl(Trailer trailer) {
+        return Uri.parse(THE_YOUTUBE_BASE_URL).buildUpon().appendPath(YOUTUBE_WATCH).appendQueryParameter(YOUTUBE_VIDEO_QUERY, trailer.getKey()).build();
     }
 
+
     /**
-     * This method returns the entire result from the HTTP response.
+     * Check is device connected on any network
      *
-     * @param url The URL to fetch the HTTP response from.
-     * @return The contents of the HTTP response.
-     * @throws IOException Related to network and stream reading
+     * @param context instance of {@link Context}
+     * @return true if device is connected on internet, false if not
      */
-    public static String getResponseFromHttpUrl(URL url) throws IOException {
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        try {
-            InputStream in = urlConnection.getInputStream();
-
-            Scanner scanner = new Scanner(in);
-            scanner.useDelimiter("\\A");
-
-            boolean hasInput = scanner.hasNext();
-            if (hasInput) {
-                return scanner.next();
-            } else {
-                return null;
-            }
-        } finally {
-            urlConnection.disconnect();
-        }
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }

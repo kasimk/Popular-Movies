@@ -17,8 +17,8 @@ import info.kasimkovacevic.popularmovies.viewholders.MovieViewHolder;
  */
 public class MoviesAdapter extends RecyclerView.Adapter<MovieViewHolder> {
 
-    List<Movie> movies;
-    Context context;
+    private List<Movie> movies;
+    private Context context;
 
     public MoviesAdapter(Context context) {
         this.context = context;
