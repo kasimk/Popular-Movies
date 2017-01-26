@@ -22,6 +22,10 @@ public class RestClientRouter {
     private RestClientRouter() {
     }
 
+    /**
+     * Return singleton instance of {@link TheMovieDBService}
+     * @return instance of {@link TheMovieDBService}
+     */
     public static TheMovieDBService get() {
         return theMovieDBService;
     }

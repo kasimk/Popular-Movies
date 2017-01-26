@@ -257,8 +257,7 @@ public class Movie implements Parcelable {
         this.favourite = favourite;
     }
 
-//Local storage definition
-
+    //Local storage definition
     public static final String AUTHORITY = "info.kasimkovacevic.popularmovies";
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
@@ -267,7 +266,6 @@ public class Movie implements Parcelable {
 
     public static final class MovieEntry implements BaseColumns {
 
-        // MovieEntry content URI = base content URI + path
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIES).build();
 

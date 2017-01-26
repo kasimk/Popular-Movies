@@ -14,7 +14,7 @@ import info.kasimkovacevic.popularmovies.activities.MovieDetailsActivity;
 import info.kasimkovacevic.popularmovies.models.Movie;
 import info.kasimkovacevic.popularmovies.utils.NetworkUtils;
 
-import static info.kasimkovacevic.popularmovies.activities.MovieDetailsActivity.POPULAR_MOVIES_MOVIE_EXTRA;
+import static info.kasimkovacevic.popularmovies.activities.MovieDetailsActivity.MOVIE_EXTRA;
 
 /**
  * Created by kasimkovacevic1 on 1/7/17.
@@ -40,7 +40,7 @@ public class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnC
     @Override
     public void onClick(View view) {
         Intent intent = new Intent(view.getContext(), MovieDetailsActivity.class);
-        intent.putExtra(POPULAR_MOVIES_MOVIE_EXTRA, movie);
+        intent.putExtra(MOVIE_EXTRA, movie);
         view.getContext().startActivity(intent);
     }
 }

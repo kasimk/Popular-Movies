@@ -10,7 +10,6 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -45,7 +44,7 @@ import static android.view.View.GONE;
 
 public class MovieDetailsActivity extends AppCompatActivity {
 
-    public static final String POPULAR_MOVIES_MOVIE_EXTRA = "info.kasimkovacevic.popularmovies.MOVIE_EXTRA";
+    public static final String MOVIE_EXTRA = "info.kasimkovacevic.popularmovies.MOVIE_EXTRA";
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
     private static final int MOVIE_TASK_ID = 101;
     private static final int REVIEWS_TASK_ID = 102;
@@ -89,8 +88,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         Intent intent = getIntent();
-        if (intent.getExtras() != null && intent.hasExtra(POPULAR_MOVIES_MOVIE_EXTRA)) {
-            movie = intent.getParcelableExtra(POPULAR_MOVIES_MOVIE_EXTRA);
+        if (intent.getExtras() != null && intent.hasExtra(MOVIE_EXTRA)) {
+            movie = intent.getParcelableExtra(MOVIE_EXTRA);
             configureUI();
         }
     }
@@ -104,7 +103,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
         movieReleaseDateTextView.setText(movie.getReleaseDate());
         Picasso.with(MovieDetailsActivity.this).load(NetworkUtils.buildPhotoUrl(movie.getPosterPath())).into(moviePosterImageView);
 
+        //Disabled until movie is loaded from db
         addMoviesToFavoritesImageButton.setEnabled(false);
+
         addMoviesToFavoritesImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,7 +134,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
         getSupportLoaderManager().initLoader(MOVIE_TASK_ID, null, movieCallbacks);
     }
 
-
+    /**
+     * If has internet connection load reviews from api otherwise load trailers from DB
+     */
     private void loadReviews() {
         if (NetworkUtils.isNetworkAvailable(MovieDetailsActivity.this)) {
             reviewsResponse = theMovieDBService.loadReviewsForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
@@ -168,6 +171,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * If has internet connection load trailers from api otherwise load trailers from DB
+     */
     private void loadTrailers() {
         if (NetworkUtils.isNetworkAvailable(MovieDetailsActivity.this)) {
             trailersResponse = theMovieDBService.loadTrailersForMovie(movie.getId(), NetworkUtils.THE_MOVIE_DB_API_KEY);
@@ -322,7 +328,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                         }
                         return reviews;
                     } catch (Exception e) {
-                        Log.e(TAG, "Failed to asynchronously load data.");
+                        Log.e(TAG, "Failed to asynchronously load reviews.");
                         e.printStackTrace();
                     }
                     return null;
@@ -383,7 +389,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                         }
                         return trailers;
                     } catch (Exception e) {
-                        Log.e(TAG, "Failed to asynchronously load data.");
+                        Log.e(TAG, "Failed to asynchronously load trailers.");
                         e.printStackTrace();
                     }
                     return null;

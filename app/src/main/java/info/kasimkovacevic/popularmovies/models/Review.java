@@ -95,7 +95,6 @@ public class Review {
 
     public static final class ReviewEntry implements BaseColumns {
 
-        // MovieEntry content URI = base content URI + path
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEWS).build();
 

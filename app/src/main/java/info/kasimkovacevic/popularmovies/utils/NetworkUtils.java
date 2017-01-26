@@ -98,6 +98,12 @@ public class NetworkUtils {
     }
 
 
+    /**
+     * Check is device connected on any network
+     *
+     * @param context instance of {@link Context}
+     * @return true if device is connected on internet, false if not
+     */
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);

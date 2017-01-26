@@ -6,6 +6,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import java.util.List;
+
+import info.kasimkovacevic.popularmovies.activities.MainActivity;
 import info.kasimkovacevic.popularmovies.models.Movie;
 import info.kasimkovacevic.popularmovies.models.Movie.MovieEntry;
 import info.kasimkovacevic.popularmovies.models.Review;
@@ -19,6 +22,24 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "moviesDB.db";
     private static final int VERSION = 1;
 
+    /**
+     * This method will save list of {@link Movie} in SQLite, without overriding favourite flag
+     *
+     * @param movies  list of {@link Movie} for saving in db
+     * @param context instance of {@link Context}
+     */
+    public static void saveMoviesInDB(Context context, List<Movie> movies) {
+        for (Movie movie : movies) {
+            DBHelper.insertOrUpdateMovie(context, movie, true);
+        }
+    }
+
+    /**
+     * Save of update movie in DB
+     * @param context instance of {@link Context}
+     * @param movie instance of {@link Movie} for updating or inserting in db
+     * @param removeFavourite flag indicates removing favourite flag while inserting/updating other movie data
+     */
     public static void insertOrUpdateMovie(Context context, Movie movie, boolean removeFavourite) {
         String stringId = Long.toString(movie.getId());
         Uri uri = Movie.MovieEntry.CONTENT_URI;
@@ -34,6 +55,11 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Save or update review in DB
+     * @param context instance of {@link Context}
+     * @param review instance of {@link Review} for updating or inserting in db
+     */
     public static void insertOrUpdateReview(Context context, Review review) {
         String stringId = review.getId();
         Uri uri = Review.ReviewEntry.CONTENT_URI;
@@ -46,6 +72,11 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Save or update trailer in DB
+     * @param context instance of {@link Context}
+     * @param trailer instance of {@link Trailer} for updating or inserting in db
+     */
     public static void insertOrUpdateTrailer(Context context, Trailer trailer) {
         String stringId = trailer.getId();
         Uri uri = Trailer.TrailerEntry.CONTENT_URI;

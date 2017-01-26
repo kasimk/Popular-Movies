@@ -9,13 +9,11 @@ import android.util.DisplayMetrics;
 
 public class ScreenUtils {
 
+    /**
+     * @return device width in density pixels
+     */
     public static int getScreenWidth() {
         DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
         return (int) (displayMetrics.widthPixels / displayMetrics.density);
-    }
-
-    public static int getScreenHeight() {
-        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        return (int) (displayMetrics.heightPixels / displayMetrics.density);
     }
 }
